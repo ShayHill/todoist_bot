@@ -1,0 +1,2 @@
+todoist_api_python
+paragraphs

@@ -1,0 +1,84 @@
+# Todoist auto labeling
+
+This is a partial replacement for the wonderful [autodoist](https://github.com/Hoffelhas/autodoist) app by [Hoffelhas](https://github.com/Hoffelhas). Recent changes to the Todoist API have broken [autodoist](https://github.com/Hoffelhas/autodoist). I'm sure [Hoffelhas](https://github.com/Hoffelhas) will fix it, and I'm sure it will be great, but I can't wait.
+
+This program replaces (and tweaks) the functionality of [autodoist](https://github.com/Hoffelhas/automdoist) that I rely on. It finds projects, sections, or tasks with special markers (that you select) and applies or removes tags with one of two schemes: serail or parallel (more below).
+
+Don't miss the ("or removes") part of that. This is meant to be a dynamic system. If you remove a marker, the labels will be removed a few seconds later. So, feel empowered to @park or @activate or @whatever_you_like any project, section, or task for half an hour if that's useful to you.But know that any labels you use with this program belong to the program. The program will freely add and remove these labels per the logic you selected when running the script. If you're not sure, see the `--dry-run` argument.
+
+    options:
+      -h, --help            show this help message and exit
+      -a API_KEY, --api_key API_KEY
+                            REQUIRED: your Todoist API Key.
+      -s [SERIAL ...], --serial [SERIAL ...]
+                            format "label suffix". Add [label] to the next (sub)task beneath or at any item with a name
+                            ending in [suffix]. Example: "next_action --" will add the label `next_action` to the next
+                            task beneath or at any project, section, or task with a name ending in --.
+      -p [PARALLEL ...], --parallel [PARALLEL ...]
+                            format "label suffix". Add [label] to all childless (sub)tasks beneath or at any item with a
+                            name ending in [suffix]. Example: "actionable -a" will add the label `actionable` to all
+                            childless (sub)tasks beneath or at any project, section, or task with a name ending in -a.
+      -d DELAY, --delay DELAY
+                            Specify the delay in seconds between syncs (default 5).
+      -n, --dry-run         Do not update Todoist. Describe changes and exit.
+      -o, --once            Update Todoist once then stop watching for changes.
+
+### Serial
+
+Apply a label to the next (sub)task (leftmost leaf).
+
+<figure>
+ <img src="https://www.foundationsafety.com/assets/img/remote_hosting/hoffelhas_serial.gif" style="margin:auto;" alt="serial processing">
+ <figcaption align="center">Image generously provided by <a href="https://github.com/Hoffelhas">Hoffelhas</a> under the MIT license.</figcaption>
+</figure>
+
+### Parallel
+
+Apply a label to all (sub)tasks with no descendent tasks (all leaves).
+
+<figure>
+ <img src="https://www.foundationsafety.com/assets/img/remote_hosting/hoffelhas_parallel.gif" style="margin:auto;" alt="parallel processing">
+ <figcaption align="center">Image generously provided by <a href="https://github.com/Hoffelhas">Hoffelhas</a> under the MIT license.</figcaption>
+</figure>
+
+### important note
+
+The meaning of "next task" is not objective. Todoist doesn't represent tasks in a strict hierarchy of
+
+    Project -> Section -> Task
+
+Two tasks under the same project might be
+
+    Project -> Subproject -> Section -> Task1
+    # and
+    Project -> Task2
+
+So, even though Todoist objects have an order attribute, there is no canonical ordering of child nodes of different types. I give higher priority to shorter branches. So, in this case, Task2 would be selected as "next task" over Task1.
+
+The full hierarchy is:
+
+    Highest priority first:
+
+        * Project -> Task
+        * Project -> Section -> Task
+        * Project -> Subproject -> Task
+        * Project -> Subproject -> Section -> Task
+        * Project -> Subproject ... Subproject -> Task
+        * Project -> Subproject ... Subproject -> Section -> Task
+
+Further, Todoist will nest any number of subprojects and subtasks, so there is no one true answer to leftmost leaf.
+
+## Use
+
+This can be run as a script with Python with the two dependencies in requirements.txt. If that's new to you or you've never created a virtual environment, this will get you there:
+
+    python -m venv venv
+    ./venv/Scripts/activate
+    pip install todoist_api_python paragraphs
+    python main.py
+
+That will print the instructions for putting together an actual command. The command I use is
+
+    python main.py -a <my-api-key> --serial "next_action --" --parallel "actionable -a" "parked -p"
+
+If you're not sure where to find your API key or you'd like to go further and run this program as a bot on a remote server (that's what it was built for), see this article: [Deploy Your First Baby Bot on Heroku](https://shayallenhill.com/deploy-your-first-baby-bot-on-heroku/) on my personal website.
