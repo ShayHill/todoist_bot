@@ -75,29 +75,20 @@ class Node(Generic[_ModelT]):
         self._children = sorted(self._children, key=_node_sort_key)
         self._are_children_sorted = True
 
-    def get_leftmost_task(self) -> Task:
-        """Get the leftmost task in the tree.
+    def iter_tasks(self) -> Iterator[Task]:
+        """Yield all tasks at and beneath self (post-order transversal).
 
-        This is the engine that run serial processing.
-
-        :returns: the leftmost task under self or, failing that, self.data.
-        :raises StopIteration: if there are no tasks under self and self.data is not
-            a task.
-        :effects: sorts self._children and removes empty sections and subprojects as
-            they are encountered.
+        :effects: sorts self._children
+        :yields Task: all tasks under self
         """
         self._sort_children()
-        while self._children:
-            try:
-                return self._children[0].get_leftmost_task()
-            except StopIteration:
-                self._children = self._children[1:]
+        for child in self._children:
+            yield from child.iter_tasks()
         if isinstance(self.data, Task):
-            return self.data
-        raise StopIteration
+            yield self.data
 
     def iter_childless_tasks(self) -> Iterator[Task]:
-        """Yield childless tasks beneath self.
+        """Yield childless tasks at and beneath self (post-order transversal).
 
         This is the engine that runs parallel processing.
 

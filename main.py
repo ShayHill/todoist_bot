@@ -12,7 +12,7 @@ from paragraphs import par as paragraphs_par  # type: ignore
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.models import Project, Section, Task
 
-from todoist_bot.task_subsets import select_parallel, select_serial
+from todoist_bot.task_subsets import select_all, select_parallel, select_serial
 from todoist_bot.tree import AnyNode, map_id_to_branch
 from todoist_bot.write_changes import label_tasks, unlabel_tasks
 
@@ -45,7 +45,7 @@ def _get_parser() -> argparse.ArgumentParser:
         help=par(
             """format "label suffix". Add [label] to the next (sub)task beneath or at
             any item with a name ending in [suffix]. Example: "next_action --" will
-            add the label `next_action` to the next task beneath or at any project,
+            add the label `@next_action` to the next task beneath or at any project,
             section, or task with a name ending in --."""
         ),
         type=str,
@@ -57,8 +57,20 @@ def _get_parser() -> argparse.ArgumentParser:
         help=par(
             """format "label suffix". Add [label] to all childless (sub)tasks beneath
             or at any item with a name ending in [suffix]. Example: "actionable -a"
-            will add the label `actionable` to all childless (sub)tasks beneath or at
-            any project, section, or task with a name ending in -a."""
+            will add the label `@actionable` to all childless (sub)tasks beneath or
+            at any project, section, or task with a name ending in -a."""
+        ),
+        type=str,
+    )
+    _ = parser.add_argument(
+        "-l",
+        "--all",
+        nargs="*",
+        help=par(
+            """format "label suffix". Add [label] to all (sub)tasks beneath or at any
+            item with a name ending in [suffix]. Example: "parked -p" will add the
+            label `@parked` to all (sub)tasks beneath or at any project, section, or
+            task with a name ending in -p."""
         ),
         type=str,
     )
@@ -100,7 +112,7 @@ def main():
     parser = _get_parser()
     args = parser.parse_args()
 
-    if not args.api_key or (not args.serial and not args.parallel):
+    if not args.api_key or not any([args.serial, args.parallel, args.all]):
         parser.print_help()
         return
 
@@ -147,6 +159,9 @@ def main():
 
         for arg in args.parallel or ():
             _mark_selection(arg, select_parallel)
+
+        for arg in args.all or ():
+            _mark_selection(arg, select_all)
 
         if args.dry_run or args.once:
             break

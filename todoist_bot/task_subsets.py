@@ -36,14 +36,14 @@ def select_serial(
     id2node: dict[str, AnyNode],
     suffix: str,
 ) -> tuple[list[Task], list[Task]]:
-    """Pass an automation down from a project to the next (sub)task.
+    """Select next childless task at or under each marked model.
 
     :param projects: a list of Todoist Projects
     :param sections: a list of Todoist Sections
     :param tasks: a list of Todoist Tasks
     :param id2node: a mapping from Todoist model IDs to Nodes
     :param suffix: a suffix to identify serial tasks
-    :return: a tuple of (accepted, rejected) tasks
+    :return: a tuple of (selected, rejected) tasks
     """
     fselect = partial(_has_suffix, suffix=suffix)
     selected: dict[str, Task] = {}
@@ -52,8 +52,9 @@ def select_serial(
         with suppress(StopIteration):
             model_id = model.id
             assert model_id is not None
-            next_task = id2node[model_id].get_leftmost_task()
-            selected[next_task.id] = id2node[model.id].get_leftmost_task()
+            with suppress(StopIteration):
+                next_task = next(id2node[model_id].iter_childless_tasks())
+                selected[next_task.id] = next_task
 
     return list(selected.values()), [x for x in tasks if x.id not in selected]
 
@@ -65,14 +66,14 @@ def select_parallel(
     id2node: dict[str, AnyNode],
     suffix: str,
 ) -> tuple[list[Task], list[Task]]:
-    """Pass an automation down from a project to all childless (sub)tasks.
+    """Select every childless task at or under each marked model.
 
     :param projects: a list of Todoist Projects
     :param sections: a list of Todoist Sections
     :param tasks: a list of Todoist Tasks
     :param id2node: a mapping from Todoist model IDs to Nodes
     :param suffix: a suffix to identify parallel tasks
-    :return: a tuple of (accepted, rejected) tasks
+    :return: a tuple of (selected, rejected) tasks
     """
     fselect = partial(_has_suffix, suffix=suffix)
     selected: dict[str, Task] = {}
@@ -81,5 +82,32 @@ def select_parallel(
         model_id = model.id
         assert model_id is not None
         selected.update({x.id: x for x in id2node[model_id].iter_childless_tasks()})
+
+    return list(selected.values()), [x for x in tasks if x.id not in selected]
+
+
+def select_all(
+    projects: list[Project],
+    sections: list[Section],
+    tasks: list[Task],
+    id2node: dict[str, AnyNode],
+    suffix: str,
+) -> tuple[list[Task], list[Task]]:
+    """Select every task at or under each marked model.
+
+    :param projects: a list of Todoist Projects
+    :param sections: a list of Todoist Sections
+    :param tasks: a list of Todoist Tasks
+    :param id2node: a mapping from Todoist model IDs to Nodes
+    :param suffix: a suffix to identify parallel tasks
+    :return: a tuple of (selected, rejected) tasks
+    """
+    fselect = partial(_has_suffix, suffix=suffix)
+    selected: dict[str, Task] = {}
+
+    for model in filter(fselect, projects + sections + tasks):
+        model_id = model.id
+        assert model_id is not None
+        selected.update({x.id: x for x in id2node[model_id].iter_tasks()})
 
     return list(selected.values()), [x for x in tasks if x.id not in selected]
