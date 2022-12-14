@@ -44,9 +44,9 @@ def _get_parser() -> argparse.ArgumentParser:
         nargs="*",
         help=par(
             """format "label suffix". Add [label] to the next (sub)task beneath or at
-            any item with a name ending in [suffix]. Example: "next_action --" will
+            any item with a name ending in [suffix]. Example: "next_action -n" will
             add the label `@next_action` to the next task beneath or at any project,
-            section, or task with a name ending in --."""
+            section, or task with a name ending in -n."""
         ),
         type=str,
     )

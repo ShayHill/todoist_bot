@@ -6,13 +6,14 @@ This program replaces (and tweaks) the functionality of [autodoist](https://gith
 
 Don't miss the ("or removes") part of that. This is a dynamic system. If you remove a marker, the labels will be removed a few seconds later. So, feel empowered to @park or @activate or @whatever_you_like any project, section, or task for half an hour if that's useful to you. But know that any labels you use with this program belong to the program. The program will freely add and remove these labels per the logic you select when running the script. If you're not sure, see the `--dry-run` argument.
 
+
     -h, --help            show this help message and exit
     -a API_KEY, --api_key API_KEY
                           REQUIRED: your Todoist API Key.
     -s [SERIAL ...], --serial [SERIAL ...]
                           format "label suffix". Add [label] to the next (sub)task beneath or at any item with a name ending in [suffix]. Example:
-                          "next_action --" will add the label `@next_action` to the next task beneath or at any project, section, or task with a name
-                          ending in --.
+                          "next_action -n" will add the label `@next_action` to the next task beneath or at any project, section, or task with a name
+                          ending in -n.
     -p [PARALLEL ...], --parallel [PARALLEL ...]
                           format "label suffix". Add [label] to all childless (sub)tasks beneath or at any item with a name ending in [suffix]. Example:
                           "actionable -a" will add the label `@actionable` to all childless (sub)tasks beneath or at any project, section, or task with a
@@ -85,6 +86,6 @@ This can be run as a script with Python with the two dependencies in requirement
 
 That will print the instructions for putting together an actual command. The command I use is
 
-    python main.py -a <my api key> --serial "next_action --" "blocking -b" --parallel "actionable -a" -all "parked -p"
+    python main.py -a <my api key> --serial "next_action -n" "blocking -b" --parallel "actionable -a" -all "parked -p"
 
 If you're not sure where to find your API key or you'd like to go further and run this program as a bot on a remote server (that's what it was built for), see this article: [Deploy Your First Baby Bot on Heroku](https://shayallenhill.com/deploy-your-first-baby-bot-on-heroku/) on my personal website.
