@@ -43,7 +43,7 @@ def _node_sort_key(node: Node[_ModelT]) -> tuple[int, int]:
         return 1, node.data.order
     if isinstance(node.data, Section):
         return 2, node.data.order
-    if isinstance(node.data, Task) and node.data.parent_id:
+    if isinstance(node.data, Project) and node.data.parent_id:
         return 3, node.data.order
     raise ValueError(f"Unexpected node type: {node.data}")
 
