@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "todoist-bot"
+version = "0.2.2"
+description = ""
+authors = ["Shay Hill <shay_public@hotmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "todoist_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+todoist-api-python = "^2.0.2"
+paragraphs = "^1.0"
+requests = "^2.28.1"
+
+[tool.poetry.group.dev.dependencies]
+pyright = "^1.1.286"
+pre-commit = "^2.21.0"
+
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.2.2"
+tag_format = "$version"
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
