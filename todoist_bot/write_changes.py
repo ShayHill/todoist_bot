@@ -20,6 +20,7 @@ def _add_personal_label(
 
     :param api: TodoistApi instance
     :name: name for new label
+    :param is_dry_run: if True, don't actually make changes, defualt False
     :return: Label instance
     """
     for label in api.get_labels():
@@ -40,6 +41,7 @@ def label_tasks(
     :param api: TodoistApi instance
     :param tasks: list of Task instances
     :param label: name of label to add
+    :param is_dry_run: if True, don't actually make changes, defualt False
     """
     try:
         _ = _add_personal_label(api, label, is_dry_run)
@@ -53,7 +55,9 @@ def label_tasks(
         if is_dry_run:
             continue
         try:
-            api.update_task(task_id=task.id, labels=task.labels + [label])  # type: ignore
+            api.update_task(  # type: ignore
+                task_id=task.id, labels=task.labels + [label]
+            )
         except Exception as e:
             print(f"Error adding label '{label}' to '{task.content}': {e}")
 
@@ -66,6 +70,7 @@ def unlabel_tasks(
     :param api: TodoistApi instance
     :param tasks: list of Task instances
     :param label: name of label to remove
+    :param is_dry_run: if True, don't actually make changes, defualt False
     """
     for task in tasks:
         if label not in task.labels:
@@ -75,7 +80,7 @@ def unlabel_tasks(
             continue
         try:
             api.update_task(  # type: ignore
-                task_id=task.id, labels=[l for l in task.labels if l != label]
+                task_id=task.id, labels=[x for x in task.labels if x != label]
             )
         except Exception as e:
             print(f"Error removing label '{label}' from '{task.content}': {e}")

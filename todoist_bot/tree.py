@@ -25,6 +25,7 @@ def _node_sort_key(node: Node[_ModelT]) -> tuple[int, int]:
 
     :param node: the node to sort
     :return: a tuple of (type, order)
+    :raise ValueError: if the node is not a subproject, section, or (sub)task
 
     Directly-connected tasks are selected first. E.g., if a project has tasks that
     are in a sections and tasks that are not within a section, the tasks that are not
@@ -60,13 +61,16 @@ class Node(Generic[_ModelT]):
         """Add a child to this node.
 
         :param child: the child to add
+        :raise AttributeError: if the children have already been sorted
         """
         if self._are_children_sorted:
-            raise ValueError("Cannot add a child to a sorted node")
+            raise AttributeError("Cannot add a child to a sorted node")
         self._children.append(child)
 
     def _sort_children(self):
         """Sort the children of this node.
+
+        :effect: sorts children under this node
 
         Result is cached, so this can only be called after the tree is built.
         """
@@ -78,8 +82,9 @@ class Node(Generic[_ModelT]):
     def iter_tasks(self) -> Iterator[Task]:
         """Yield all tasks at and beneath self (post-order transversal).
 
-        :effects: sorts self._children
-        :yields Task: all tasks under self
+        :yield: all tasks under self
+        :return: None
+        :effect: sorts self._children
         """
         self._sort_children()
         for child in self._children:
@@ -92,8 +97,9 @@ class Node(Generic[_ModelT]):
 
         This is the engine that runs parallel processing.
 
-        :yields: every childless task beneath self and self.data if self is childless.
-        :effects: sorts self._children
+        :yield: every childless task beneath self and self.data if self is childless.
+        :return: None
+        :effect: sorts self._children
         """
         self._sort_children()
         for child in self._children:
@@ -111,7 +117,7 @@ def _place_subs(id2node: dict[str, Node[Project]] | dict[str, Node[Task]]) -> No
     :param id2node: map of node ids to nodes (includes parents and perhaps children)
     :effect: if there are any subtasks or subprojects, they are will be added to
         their parent element's children attribute.
-    :raised ValueError: if a subtask or subproject is found without a parent
+    :raise AttributeError: if a subtask or subproject is found without a parent
     """
     queue = deque(x for x in id2node.values() if x.data.parent_id is not None)
     while queue:
@@ -126,7 +132,7 @@ def _place_subs(id2node: dict[str, Node[Project]] | dict[str, Node[Task]]) -> No
             except KeyError:
                 queue.append(child)
         if not found_parent:
-            raise ValueError("Could not find a parent for all tasks")
+            raise AttributeError(f"Could not find parents for nodes {queue}")
 
 
 def map_id_to_branch(
@@ -134,7 +140,9 @@ def map_id_to_branch(
 ) -> dict[str, AnyNode]:
     """Build a tree of nodes from the API cache.
 
-    :param api_cache: the API cache
+    :param projects: all (sub)project nodes
+    :param sections: all section nodes
+    :param tasks: all (sub)task nodes
     :return: a map of node ids to nodes. Each node with children will contain
         references to any children, so the branch can be searched downward.
 

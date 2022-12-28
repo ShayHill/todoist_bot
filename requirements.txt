@@ -1,2 +1,2 @@
-todoist_api_python
 paragraphs
+todoist_api_python
