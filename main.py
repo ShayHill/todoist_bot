@@ -18,7 +18,12 @@ from todoist_bot.write_changes import label_tasks, unlabel_tasks
 
 
 def par(long_string: str) -> str:
-    """I need to add types to my old paragraphs library"""
+    """I need to add types to my old paragraphs library.
+
+    :param long_string: a string that is too long to fit on one line
+    :return: a string that is broken into paragraphs (single newlines converted to
+        spaces, double endlines converted to endlines)
+    """
     return paragraphs_par(long_string)  # type: ignore
 
 
@@ -30,7 +35,10 @@ Selecter: TypeAlias = Callable[
 
 
 def _get_parser() -> argparse.ArgumentParser:
-    """Return an argument parser for this script."""
+    """Return an argument parser for this script.
+
+    :return: an argument parser for `python main.py ...`
+    """
     parser = argparse.ArgumentParser(
         description="Automations for Todoist",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -109,6 +117,7 @@ def _sleep(start_time: float, delay: int) -> None:
 
 
 def main():
+    """Main function."""
     parser = _get_parser()
     args = parser.parse_args()
 
@@ -125,21 +134,21 @@ def main():
         try:
             projects = api.get_projects()
         except Exception as e:
-            print(f"errer getting Todoist Projects: {e}")
+            print(f"error getting Todoist Projects: {e}")
             _sleep(start_time, args.delay)
             continue
 
         try:
             sections = api.get_sections()  # type: ignore
         except Exception as e:
-            print(f"errer getting Todoist Sections: {e}")
+            print(f"error getting Todoist Sections: {e}")
             _sleep(start_time, args.delay)
             continue
 
         try:
             tasks = api.get_tasks()  # type: ignore
         except Exception as e:
-            print(f"errer getting Todoist Tasks: {e}")
+            print(f"error getting Todoist Tasks: {e}")
             _sleep(start_time, args.delay)
             continue
 
