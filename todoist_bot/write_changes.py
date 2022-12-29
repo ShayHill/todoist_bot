@@ -8,58 +8,31 @@ changes will be written to Todoist.
 """
 
 import json
+import time
 import uuid
-from typing import cast
 
 import requests
 from requests.structures import CaseInsensitiveDict
-from todoist_api_python.models import Task as apip_task
 
 from todoist_bot.headers import SYNC_URL
 from todoist_bot.read_changes import Task
 
-# This should cover everything in Todoist response.json()
-JsonDictValue = str | int | bool | None | list["JsonDict"] | dict[str, "JsonDict"]
-JsonDict = dict[str, JsonDictValue]
-
-# A more constrained dict type for command responses
-ItemResponse = dict[str, str | dict[str, str | int | list[str]]]
+# commands to send to Todist API. Bigger isn't much faster. I don't know what the
+# soft limit is, but I get a lot of bad requests over a few hundred.
+_COMMAND_CHUNK_SIZE = 99
 
 Command = dict[str, str | dict[str, str | int | list[str]]]
 
 
-def label_tasks(calls: list[Command], tasks: list[apip_task], label: str):
-    """Add a label to each model in the list.
-
-    :param calls: a list of commands to which new commands will be appended
-    :param tasks: list of Task instances
-    :param label: name of label to add
-    """
-    queue_new_label(calls, label)
-    for task in (t for t in tasks if label not in t.labels):
-        queue_add_label(calls, cast(Task, task), label)
-
-
-def unlabel_tasks(calls: list[Command], tasks: list[apip_task], label: str):
-    """Remove a label from each model in the list.
-
-    :param calls: a list of commands to which new commands will be appended
-    :param tasks: list of Task instances
-    :param label: name of label to remove
-    """
-    for task in (t for t in tasks if label in t.labels):
-        queue_remove_label(calls, cast(Task, task), label)
-
-
-def queue_new_label(calls: list[Command], label: str):
+def queue_new_label(commands: list[Command], label: str):
     """Return a dictionary (command) to later add a new personal label.
 
-    :param calls: a list of commands to which the new command will be appended
+    :param commands: a list of commands to which the new command will be appended
     :param label: label to add to personal labels
     :effect: the command is appended to the :calls: list of commands
     """
     print(f"create personal label '{label}'")
-    calls.append(
+    commands.append(
         {
             "type": "label_add",
             "temp_id": uuid.uuid4().hex,
@@ -69,57 +42,80 @@ def queue_new_label(calls: list[Command], label: str):
     )
 
 
-def queue_add_label(calls: list[Command], task: Task, label: str):
+def queue_add_label(commands: list[Command], task: Task, label: str):
     """Return a dictionary (command) to add a label to an item.
 
-    :param calls: a list of commands to which the new command will be appended
+    :param commands: a list of commands to which the new command will be appended
     :param task: item to update
     :param label: label to remove
     :effect: the command is appended to the :calls: list of commands
     """
-    labels = task.labels
     print(f"add '{label}' to '{task.content}'")
-    calls.append(
+    commands.append(
         {
             "type": "item_update",
             "uuid": uuid.uuid4().hex,
-            "args": {"id": task.id, "labels": labels + [label]},
+            "args": {"id": task.id, "labels": task.labels + [label]},
         }
     )
 
 
-def queue_remove_label(calls: list[Command], task: Task, label: str):
+def queue_remove_label(commands: list[Command], task: Task, label: str):
     """Return a dictionary (command) to remove a label from an item.
 
-    :param calls: a list of commands to which the new command will be appended
+    :param commands: a list of commands to which the new command will be appended
     :param task: item to update
     :param label: label to remove
     :effect: the command is appended to the :calls: list of commands
     """
-    labels = task.labels
     print(f"remove '{label}' from '{task.content}'")
-    calls.append(
+    commands.append(
         {
             "type": "item_update",
             "uuid": uuid.uuid4().hex,
-            "args": {"id": task.id, "labels": [x for x in labels if x != label]},
+            "args": {"id": task.id, "labels": [x for x in task.labels if x != label]},
         }
     )
 
 
-def write_changes(
-    headers: CaseInsensitiveDict[str], changes: list[Command]
-) -> JsonDict:
-    """Write the changes to the Todoist API.
+def _write_some_changes(
+    headers: CaseInsensitiveDict[str], commands: list[Command]
+) -> str:
+    """Write changes to the Todoist API.
 
     :param headers: Headers for the request (produced by headers.get_headers)
-    :param changes: list of dictionaries (commands) to add to the API
-    :return: response.json() from the API
+    :param commands: list of dictionaries (commands) to add to the API
+    :return: sync_token from the API
     """
     resp = requests.post(
         SYNC_URL,
         headers=headers,
-        data=json.dumps({"commands": changes}),
+        data=json.dumps({"commands": commands}),
     )
     resp.raise_for_status()
-    return resp.json()
+    return str(resp.json()["sync_token"])
+
+
+def write_changes(
+    sync_token: str, headers: CaseInsensitiveDict[str], commands: list[Command]
+) -> str:
+    """Write the changes to the Todoist API, one chunk at a time.
+
+    :param sync_token: current sync_token, will be updated if any commands are sent
+    :param headers: Headers for the request (produced by headers.get_headers)
+    :param commands: list of dictionaries (commands) to add to the API
+    :return: sync_token from the API
+
+    I don't know what the soft limit is, but I get lot of bad request errors if I
+    send 1000 commands at once.
+    """
+    if not commands:
+        return sync_token
+    try:
+        sync_token = _write_some_changes(headers, commands[:_COMMAND_CHUNK_SIZE])
+    except Exception as e:
+        print(e)
+        # give up and start the whole main loop over
+        return "*"
+    time.sleep(1)
+    return write_changes(sync_token, headers, commands[_COMMAND_CHUNK_SIZE:])

@@ -7,8 +7,7 @@
 from contextlib import suppress
 from functools import partial
 
-from todoist_api_python.models import Project, Section, Task
-
+from todoist_bot.read_changes import Project, Section, Task
 from todoist_bot.tree import AnyNode
 
 

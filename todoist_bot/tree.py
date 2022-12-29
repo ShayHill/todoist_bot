@@ -14,7 +14,7 @@ from __future__ import annotations
 from collections import deque
 from typing import Any, Generic, Iterator, TypeAlias, TypeVar
 
-from todoist_api_python.models import Project, Section, Task
+from todoist_bot.read_changes import Project, Section, Task
 
 _Model: TypeAlias = Project | Section | Task
 _ModelT = TypeVar("_ModelT", bound=_Model)
@@ -41,11 +41,11 @@ def _node_sort_key(node: Node[_ModelT]) -> tuple[int, int]:
         * Project -> Subproject ... Subproject -> Section -> Task
     """
     if isinstance(node.data, Task):
-        return 1, node.data.order
+        return 1, node.data.child_order
     if isinstance(node.data, Section):
-        return 2, node.data.order
-    if isinstance(node.data, Project) and node.data.parent_id:
-        return 3, node.data.order
+        return 2, node.data.section_order
+    if node.data.parent_id:
+        return 3, node.data.child_order
     raise ValueError(f"Unexpected node type: {node.data}")
 
 

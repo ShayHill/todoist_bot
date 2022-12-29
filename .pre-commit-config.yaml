@@ -50,6 +50,7 @@ repos:
   rev: 5.11.4
   hooks:
   - id: isort
+    args: ["--profile", "black", "--filter-files"]
 
 - repo: https://github.com/psf/black
   rev: 22.12.0
@@ -105,17 +106,8 @@ repos:
     args:
     - --max-line-length=88
 
-# - repo: https://github.com/necaris/pre-commit-pyright
-#   rev: '1.1.53'
-#   hooks:
-#   - id: pyright
-#     args: [
-#       "typeCheckingMode", "strict",
-#       "reportShadowedImports", "true",
-#       "reportCallInDefaultInitializer", "true",
-#       "reportImplicitStringConcatenation", "true",
-#       "reportPropertyTypeMismatch", "true",
-#       "reportUninitializedInstanceVariable", "true",
-#       "reportUnnecessaryTypeIgnoreComment", "true",
-#       "reportUnusedCallResult", "true"
-#     ]
+# reads pyproject.toml for config
+- repo: https://github.com/RobertCraigie/pyright-python
+  rev: v1.1.286
+  hooks:
+  - id: pyright
