@@ -33,10 +33,10 @@ repos:
   hooks:
     - id: poetry-check
     - id: poetry-lock
-    - id: poetry-export
-      args:
-      - -f requirements.txt
-      - -o requirements.txt
+    # - id: poetry-export
+    #   args:
+    #   - -f requirements.txt
+    #   - -o requirements.txt
 
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v0.991
@@ -50,6 +50,7 @@ repos:
   rev: 5.11.4
   hooks:
   - id: isort
+    args: ["--profile", "black", "--filter-files"]
 
 - repo: https://github.com/psf/black
   rev: 22.12.0
@@ -80,12 +81,14 @@ repos:
   - id: pylint
     name: pylint
     args:
-    - --good-names=i,j,_,e,f
+    - --good-names=i,j,_,e,f,id
     - --disable=too-many-instance-attributes
     - --disable=too-many-locals
+    - --disable=too-few-public-methods
     - --disable=protected-access
     - --disable=c-extension-no-member
     - --disable=too-many-instance-attributes
+    - --disable=duplicate-code
     - --disable=too-many-locals
     - --disable=import-error
     - --disable=too-many-arguments
@@ -103,10 +106,8 @@ repos:
     args:
     - --max-line-length=88
 
-- repo: local
+# reads pyproject.toml for config
+- repo: https://github.com/RobertCraigie/pyright-python
+  rev: v1.1.286
   hooks:
   - id: pyright
-    language: system
-    name: pyright
-    entry: pyright
-    files: (.*\.py)

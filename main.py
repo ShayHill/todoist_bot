@@ -6,15 +6,28 @@
 
 import argparse
 import time
-from typing import Callable, TypeAlias
+from typing import Any, Callable, TypeAlias
 
 from paragraphs import par as paragraphs_par  # type: ignore
-from todoist_api_python.api import TodoistAPI
-from todoist_api_python.models import Project, Section, Task
 
+from todoist_bot.headers import new_headers
+from todoist_bot.read_changes import Project, Section, Task, read_changes
 from todoist_bot.task_subsets import select_all, select_parallel, select_serial
 from todoist_bot.tree import AnyNode, map_id_to_branch
-from todoist_bot.write_changes import label_tasks, unlabel_tasks
+from todoist_bot.write_changes import (
+    queue_add_label,
+    queue_new_label,
+    queue_remove_label,
+    write_changes,
+)
+
+Command = dict[str, str | dict[str, str | int | list[str]]]
+
+# type alias for select_serial and select_parallel
+Selecter: TypeAlias = Callable[
+    [list[Project], list[Section], list[Task], dict[str, AnyNode], str],
+    tuple[list[Task], list[Task]],
+]
 
 
 def par(long_string: str) -> str:
@@ -24,14 +37,9 @@ def par(long_string: str) -> str:
     :return: a string that is broken into paragraphs (single newlines converted to
         spaces, double endlines converted to endlines)
     """
-    return paragraphs_par(long_string)  # type: ignore
-
-
-# type alias for select_serial and select_parallel
-Selecter: TypeAlias = Callable[
-    [list[Project], list[Section], list[Task], dict[str, AnyNode], str],
-    tuple[list[Task], list[Task]],
-]
+    result: Any = paragraphs_par(long_string)
+    assert isinstance(result, str)
+    return result
 
 
 def _get_parser() -> argparse.ArgumentParser:
@@ -110,7 +118,7 @@ def _sleep(start_time: float, delay: int) -> None:
     delta_time = end_time - start_time
     sleep_time = delay - delta_time
     if sleep_time >= 0:
-        print(f"sleeping for {sleep_time}. Waiting for changes...")
+        print(f"\nsleeping for {sleep_time}. Waiting for changes...")
         time.sleep(sleep_time)
     else:
         print(f"operation took longer than delay time: {delta_time}")
@@ -125,43 +133,42 @@ def main():
         parser.print_help()
         return
 
-    api = TodoistAPI(args.api_key)
+    headers = new_headers(args.api_key)
+    todoist = None
+    sync_token: str = "*"
 
     while True:
         start_time = time.time()
 
-        # cache some of the api calls
-        try:
-            projects = api.get_projects()
-        except Exception as e:
-            print(f"error getting Todoist Projects: {e}")
+        todoist = read_changes(headers, sync_token)
+        if todoist is None:
             _sleep(start_time, args.delay)
             continue
 
-        try:
-            sections = api.get_sections()  # type: ignore
-        except Exception as e:
-            print(f"error getting Todoist Sections: {e}")
-            _sleep(start_time, args.delay)
-            continue
-
-        try:
-            tasks = api.get_tasks()  # type: ignore
-        except Exception as e:
-            print(f"error getting Todoist Tasks: {e}")
-            _sleep(start_time, args.delay)
-            continue
+        sync_token = todoist.sync_token
+        todoist_label_names = [x.name for x in todoist.labels]
+        projects = todoist.projects
+        sections = todoist.sections
+        tasks = todoist.tasks
 
         id2node = map_id_to_branch(projects, sections, tasks)
+
+        commands: list[Command] = []
 
         def _mark_selection(input_arg: str, fselect: Selecter) -> None:
             """Mark selection of tasks with given label."""
             arg_words = input_arg.split()
             label, suffix = "_".join(arg_words[:-1]), arg_words[-1]
             to_label, to_clear = fselect(projects, sections, tasks, id2node, suffix)
-            if to_label:
-                label_tasks(api, to_label, label, args.dry_run)
-            unlabel_tasks(api, to_clear, label, args.dry_run)
+
+            to_label = [t for t in to_label if label not in t.labels]
+            if to_label and label not in todoist_label_names:
+                queue_new_label(commands, label)
+
+            for task in to_label:
+                queue_add_label(commands, task, label)
+            for task in (t for t in to_clear if label in t.labels):
+                queue_remove_label(commands, task, label)
 
         for arg in args.serial or ():
             _mark_selection(arg, select_serial)
@@ -172,7 +179,12 @@ def main():
         for arg in args.all or ():
             _mark_selection(arg, select_all)
 
-        if args.dry_run or args.once:
+        if args.dry_run:
+            break
+
+        sync_token = write_changes(sync_token, headers, commands)
+
+        if args.once:
             break
 
         _sleep(start_time, args.delay)

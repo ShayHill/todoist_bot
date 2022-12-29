@@ -9,12 +9,10 @@ packages = [{include = "todoist_bot"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-todoist-api-python = "^2.0.2"
 paragraphs = "^1.0"
 requests = "^2.28.1"
 
 [tool.poetry.group.dev.dependencies]
-pyright = "^1.1.286"
 pre-commit = "^2.21.0"
 
 
@@ -25,3 +23,21 @@ tag_format = "$version"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.pyright]
+include = ["src"]
+exclude = ["**/__pycache__.py"]
+
+pythonVersion = "3.10"
+pythonPlatform = "Any"
+
+typeCheckingMode = "strict"
+reportShadowedImports = true
+reportCallInDefaultInitializer = true
+reportImplicitStringConcatenation = true
+reportPropertyTypeMismatch = true
+reportUninitializedInstanceVariable = true
+reportUnnecessaryTypeIgnoreComment = true
+reportUnusedCallResult = true
+reportMissingModuleSource = false
