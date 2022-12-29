@@ -12,9 +12,10 @@ from paragraphs import par as paragraphs_par  # type: ignore
 from todoist_api_python.api import TodoistAPI
 from todoist_api_python.models import Project, Section, Task
 
+from todoist_bot.headers import new_headers
 from todoist_bot.task_subsets import select_all, select_parallel, select_serial
 from todoist_bot.tree import AnyNode, map_id_to_branch
-from todoist_bot.write_changes import label_tasks, unlabel_tasks
+from todoist_bot.write_changes import label_tasks, unlabel_tasks, write_changes
 
 
 def par(long_string: str) -> str:
@@ -24,8 +25,10 @@ def par(long_string: str) -> str:
     :return: a string that is broken into paragraphs (single newlines converted to
         spaces, double endlines converted to endlines)
     """
-    return paragraphs_par(long_string)  # type: ignore
+    return paragraphs_par(long_string)
 
+
+Command = dict[str, str | dict[str, str | int | list[str]]]
 
 # type alias for select_serial and select_parallel
 Selecter: TypeAlias = Callable[
@@ -126,6 +129,7 @@ def main():
         return
 
     api = TodoistAPI(args.api_key)
+    headers = new_headers(args.api_key)
 
     while True:
         start_time = time.time()
@@ -154,14 +158,16 @@ def main():
 
         id2node = map_id_to_branch(projects, sections, tasks)
 
+        calls: list[Command] = []
+
         def _mark_selection(input_arg: str, fselect: Selecter) -> None:
             """Mark selection of tasks with given label."""
             arg_words = input_arg.split()
             label, suffix = "_".join(arg_words[:-1]), arg_words[-1]
             to_label, to_clear = fselect(projects, sections, tasks, id2node, suffix)
             if to_label:
-                label_tasks(api, to_label, label, args.dry_run)
-            unlabel_tasks(api, to_clear, label, args.dry_run)
+                label_tasks(calls, to_label, label)
+            unlabel_tasks(calls, to_clear, label)
 
         for arg in args.serial or ():
             _mark_selection(arg, select_serial)
@@ -174,6 +180,8 @@ def main():
 
         if args.dry_run or args.once:
             break
+
+        _ = write_changes(headers, calls)
 
         _sleep(start_time, args.delay)
 
