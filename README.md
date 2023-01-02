@@ -85,7 +85,7 @@ This can be run as a script with Python with the two dependencies in requirement
 
     python -m venv venv
     ./venv/Scripts/activate
-    pip install todoist_api_python paragraphs
+    pip install requests paragraphs
     python main.py
 
 That will print the instructions for putting together an actual command. The command I use is
