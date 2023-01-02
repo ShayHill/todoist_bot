@@ -6,9 +6,9 @@
 
 import argparse
 import time
-from typing import Any, Callable, TypeAlias
+from typing import Callable, TypeAlias
 
-from paragraphs import par as paragraphs_par  # type: ignore
+from paragraphs import par
 
 from todoist_bot.headers import new_headers
 from todoist_bot.read_changes import Project, Section, Task, read_changes
@@ -28,18 +28,6 @@ Selecter: TypeAlias = Callable[
     [list[Project], list[Section], list[Task], dict[str, AnyNode], str],
     tuple[list[Task], list[Task]],
 ]
-
-
-def par(long_string: str) -> str:
-    """I need to add types to my old paragraphs library.
-
-    :param long_string: a string that is too long to fit on one line
-    :return: a string that is broken into paragraphs (single newlines converted to
-        spaces, double endlines converted to endlines)
-    """
-    result: Any = paragraphs_par(long_string)
-    assert isinstance(result, str)
-    return result
 
 
 def _get_parser() -> argparse.ArgumentParser:
