@@ -1,10 +1,14 @@
 # Todoist auto labeling
 
-This is a partial replacement for the wonderful [autodoist](https://github.com/Hoffelhas/autodoist) app by [Hoffelhas](https://github.com/Hoffelhas). Recent changes to the Todoist API have broken [autodoist](https://github.com/Hoffelhas/autodoist). I'm sure [Hoffelhas](https://github.com/Hoffelhas) will fix it, and I'm sure it will be great, but I can't wait.
+> This is my original REST implementation. Does everything is says on the tin. No issues except that I needed some of the sync functionality to use the core in another project.
 
-This program replaces (and tweaks) the functionality of [autodoist](https://github.com/Hoffelhas/automdoist) that I rely on. It finds (sub)projects, sections, or (sub)tasks with special markers (that you select) and applies or removes tags with one of three schemes: serial, parallel (more below), or all.
+This is a partial replacement for the wonderful [Autodoist](https://github.com/Hoffelhas/autodoist) app by [Hoffelhas](https://github.com/Hoffelhas). Changes to the Todoist API temporarily broke [Autodoist](https://github.com/Hoffelhas/autodoist). I wrote this to keep "next_action" alive while [Autodoist](https://github.com/Hoffelhas/autodoist) was down and as an example for [an article on building and hosting a "bot"](https://www.foundationsafety.com/deploy-your-first-baby-bot-on-heroku).
 
-Don't miss the ("or removes") part of that. This is a dynamic system. If you remove a marker, the labels will be removed a few seconds later. So, feel empowered to @park or @activate or @whatever_you_like any project, section, or task for half an hour if that's useful to you. But know that any labels you use with this program belong to the program. The program will freely add and remove these labels per the logic you select when running the script. If you're not sure, see the `--dry-run` argument.
+> [Hoffelhas](https://github.com/Hoffelhas) has since restored [Autodoist](https://github.com/Hoffelhas/autodoist) to its former glory. This project works, and I will continue to use and maintain it, but in your shoes I'd probably defer to the [Lindy Rule](https://en.wikipedia.org/wiki/Lindy_effect) and go with [Autodoist](https://github.com/Hoffelhas/autodoist), the more established project.
+
+This project reproduces (and tweaks) the functionality of [Autodoist](https://github.com/Hoffelhas/automdoist) that I rely on. It finds (sub)projects, sections, or (sub)tasks with special markers (that you select) and applies or removes tags with one of three schemes: serial, parallel (more below), or all.
+
+Don't miss the ("or removes") part of that. This is a dynamic system. If you remove a marker, the labels will be removed a few seconds later. So, feel empowered to @park or @activate or @whatever-you-like any project, section, or task for half an hour if that's useful to you. But know that any labels you use with this program belong to the program. The program will freely add and remove these labels per the logic you select when running the script. If you're not sure, see the `--dry-run` argument.
 
 
     -h, --help            show this help message and exit
@@ -88,4 +92,6 @@ That will print the instructions for putting together an actual command. The com
 
     python main.py -a <my api key> --serial "next_action -n" "blocking -b" --parallel "actionable -a" -all "parked -p"
 
-If you're not sure where to find your API key or you'd like to go further and run this program as a bot on a remote server (that's what it was built for), see this article: [Deploy Your First Baby Bot on Heroku](https://shayallenhill.com/deploy-your-first-baby-bot-on-heroku/) on my personal website.
+I suggest following the "dash letter" suffix style. You can also use "-word" or just "word". Double symbols (e.g., the "-\-" you may be accustomed to from [Autodoist](https://github.com/Hoffelhas/autodoist)) have a potential to cause problems. [Autodoist](https://github.com/Hoffelhas/autodoist) makes provisions for some of these problems. Todoist-bot does not.
+
+If you're not sure where to find your API key or you'd like to go further and run this program as a bot on a remote server (that's what it was built for), see this article: [Deploy Your First Baby Bot on Heroku](https://www.foundationsafety.com/deploy-your-first-baby-bot-on-heroku) on my personal website.
