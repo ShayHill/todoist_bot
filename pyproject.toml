@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "todoist-bot"
-version = "0.2.3"
+version = "0.2.5"
 description = ""
 authors = ["Shay Hill <shay_public@hotmail.com>"]
 license = "MIT"
@@ -16,11 +16,13 @@ paragraphs = "^0.2.0"
 pre-commit = "^2.21.0"
 commitizen = "^2.39.1"
 
-
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.2.3"
+version = "0.2.5"
 tag_format = "$version"
+version_files = [
+    "pyproject.toml:^version"
+]
 
 [build-system]
 requires = ["poetry-core"]

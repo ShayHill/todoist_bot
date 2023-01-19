@@ -1,7 +1,5 @@
 # Todoist auto labeling
 
-> This is my original REST implementation. Does everything is says on the tin. No issues except that I needed some of the sync functionality to use the core in another project.
-
 This is a partial replacement for the wonderful [Autodoist](https://github.com/Hoffelhas/autodoist) app by [Hoffelhas](https://github.com/Hoffelhas). Changes to the Todoist API temporarily broke [Autodoist](https://github.com/Hoffelhas/autodoist). I wrote this to keep "next_action" alive while [Autodoist](https://github.com/Hoffelhas/autodoist) was down and as an example for [an article on building and hosting a "bot"](https://www.foundationsafety.com/deploy-your-first-baby-bot-on-heroku).
 
 > [Hoffelhas](https://github.com/Hoffelhas) has since restored [Autodoist](https://github.com/Hoffelhas/autodoist) to its former glory. This project works, and I will continue to use and maintain it, but in your shoes I'd probably defer to the [Lindy Rule](https://en.wikipedia.org/wiki/Lindy_effect) and go with [Autodoist](https://github.com/Hoffelhas/autodoist), the more established project.
@@ -85,7 +83,7 @@ This can be run as a script with Python with the two dependencies in requirement
 
     python -m venv venv
     ./venv/Scripts/activate
-    pip install requests paragraphs
+    pip install todoist_api_python paragraphs
     python main.py
 
 That will print the instructions for putting together an actual command. The command I use is
