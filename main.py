@@ -10,11 +10,11 @@ from typing import Callable, TypeAlias
 
 from paragraphs import par
 
-from todoist_bot.headers import new_headers
-from todoist_bot.read_changes import Project, Section, Task, read_changes
-from todoist_bot.task_subsets import select_all, select_parallel, select_serial
-from todoist_bot.tree import AnyNode, map_id_to_branch
-from todoist_bot.write_changes import (
+from todoist_tree.headers import new_headers
+from todoist_tree.read_changes import Project, Section, Task, read_changes
+from todoist_tree.task_subsets import select_all, select_parallel, select_serial
+from todoist_tree.tree import AnyNode, map_id_to_branch
+from todoist_tree.write_changes import (
     queue_add_label,
     queue_new_label,
     queue_remove_label,
