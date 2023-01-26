@@ -9,7 +9,6 @@ import time
 from typing import Callable, TypeAlias
 
 from paragraphs import par
-
 from todoist_tree.headers import new_headers
 from todoist_tree.read_changes import Project, Section, Task, read_changes
 from todoist_tree.task_subsets import select_all, select_parallel, select_serial

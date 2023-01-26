@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "todoist-bot"
+version = "0.2.0"
+description = "Apply and remove task labels by adding name suffixes"
+authors = ["Shay Hill <shay_public@hotmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "todoist_bot"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+todoist-tree = "^0.1.1"
+paragraphs = "^0.2.0"
+
+
+[tool.poetry.group.dev.dependencies]
+commitizen = "^2.39.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
