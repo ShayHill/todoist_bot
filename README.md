@@ -48,7 +48,7 @@ Apply a label to all (sub)tasks with no descendent tasks (all leaves).
 
 ### All
 
-You can use naming conventions for sections and then filter to find, for example, all sections named Parked. The --all parameter allows using a suffix instead so you can use descriptive section names. For example, you can `@parked` sections "waiting on supplies", "waiting on approval", "if the client ever calls back", and "probably never" across multiple projects then see all `@parked` tasks in the same filter.
+Apply a label to all tasks under a Project, Section, or Task.
 
 ### important note
 
@@ -89,6 +89,12 @@ This can be run as a script with Python with the two dependencies in requirement
 That will print the instructions for putting together an actual command. The command I use is
 
     python main.py -a <my api key> --serial "next_action -n" "blocking -b" --parallel "actionable -a" -all "parked -p"
+
+This command will:
+
+* For any Project, Section, or Task with an `-n` suffix (e.g., `Clean Office -n`), tag the next task with `@next_action`.
+* For any Project, Section, or Task with an `-a` suffix (e.g., `Purchase Supplies -a`), tag all top-level (no subtasks) tasks with `@actionable`.
+* For and Project, Section, or Task with a `-p` suffix (e.g., `Post Review Actions -p`), tag all tasks and subtasks with `@parked`.
 
 I suggest following the "dash letter" suffix style. You can also use "-word" or just "word". Double symbols (e.g., the "-\-" you may be accustomed to from [Autodoist](https://github.com/Hoffelhas/autodoist)) have a potential to cause problems. [Autodoist](https://github.com/Hoffelhas/autodoist) makes provisions for some of these problems. Todoist-bot does not.
 
