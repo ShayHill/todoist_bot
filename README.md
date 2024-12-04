@@ -88,7 +88,7 @@ This can be run as a script with Python with the two dependencies in requirement
 
 That will print the instructions for putting together an actual command. The command I use is
 
-    python main.py -a <my api key> --serial "next_action -n" "blocking -b" --parallel "actionable -a" -all "parked -p"
+    python main.py -a <my api key> --serial "next_action -n" "blocking -b" --parallel "actionable -a" --all "parked -p"
 
 This command will:
 
